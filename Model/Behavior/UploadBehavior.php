@@ -1,9 +1,9 @@
 <?php
 /**
- * This file is a part of UploadPack - a plugin that makes file uploads in CakePHP as easy as possible. 
- * 
+ * This file is a part of UploadPack - a plugin that makes file uploads in CakePHP as easy as possible.
+ *
  * UploadBehavior
- * 
+ *
  * UploadBehavior does all the job of saving files to disk while saving records to database. For more info read UploadPack documentation.
  *
  * joe bartlett's lovingly handcrafted tweaks add several resize modes. see "more on styles" in the documentation.
@@ -12,13 +12,13 @@
  * @link http://github.com/szajbus/uploadpack
  */
 class UploadBehavior extends ModelBehavior {
-  
+
   static $__settings = array();
-  
+
   var $toWrite = array();
-  
+
   var $toDelete = array();
-  
+
   var $maxWidthSize = false;
 
   function setup(&$model, $settings = array()) {
@@ -28,12 +28,12 @@ class UploadBehavior extends ModelBehavior {
       'resizeToMaxWidth' => false,
       'quality' => 75
     );
-    
+
     foreach ($settings as $field => $array) {
       self::$__settings[$model->name][$field] = array_merge($defaults, $array);
     }
   }
-  
+
   function beforeSave(&$model) {
     $this->_reset();
     foreach (self::$__settings[$model->name] as $field => $settings) {
@@ -50,20 +50,20 @@ class UploadBehavior extends ModelBehavior {
     }
     return true;
   }
-  
+
   function afterSave(&$model, $create) {
     if (!$create) {
       $this->_deleteFiles($model);
     }
     $this->_writeFiles($model);
   }
-  
+
   function beforeDelete(&$model) {
     $this->_reset();
     $this->_prepareToDeleteFiles($model);
     return true;
   }
-  
+
   function afterDelete(&$model) {
     $this->_deleteFiles($model);
   }
@@ -87,7 +87,7 @@ class UploadBehavior extends ModelBehavior {
     $this->toWrite = null;
     $this->toDelete = null;
   }
-  
+
   function _fetchFromUrl($url) {
     $data = array('remote' => true);
     $data['name'] = end(explode('/', $url));
@@ -109,11 +109,11 @@ class UploadBehavior extends ModelBehavior {
   function _prepareToWriteFiles(&$model, $field) {
     $this->toWrite[$field] = $model->data[$model->name][$field];
     // make filename URL friendly by using Cake's Inflector
-    $this->toWrite[$field]['name'] = 
+    $this->toWrite[$field]['name'] =
         Inflector::slug(substr($this->toWrite[$field]['name'], 0, strrpos($this->toWrite[$field]['name'], '.'))). // filename
         substr($this->toWrite[$field]['name'], strrpos($this->toWrite[$field]['name'], '.')); // extension
   }
-  
+
   function _writeFiles(&$model) {
     if (!empty($this->toWrite)) {
       foreach ($this->toWrite as $field => $toWrite) {
@@ -138,7 +138,7 @@ class UploadBehavior extends ModelBehavior {
       }
     }
   }
-  
+
   function _prepareToDeleteFiles(&$model, $field = null, $forceRead = false) {
     $needToRead = true;
     if ($field === null) {
@@ -150,7 +150,7 @@ class UploadBehavior extends ModelBehavior {
       $field .= '_file_name';
       $fields = array($field);
     }
-    
+
     if (!$forceRead && !empty($model->data[$model->alias])) {
       $needToRead = false;
       foreach ($fields as $field) {
@@ -172,7 +172,7 @@ class UploadBehavior extends ModelBehavior {
     }
     $this->toDelete['id'] = $model->id;
   }
-  
+
   function _deleteFiles(&$model) {
     foreach (self::$__settings[$model->name] as $field => $settings) {
       if (!empty($this->toDelete[$field.'_file_name'])) {
@@ -187,11 +187,11 @@ class UploadBehavior extends ModelBehavior {
       }
     }
   }
-  
+
   function _interpolate(&$model, $field, $filename, $style) {
     return self::interpolate($model->name, $model->id, $field, $filename, $style);
   }
-  
+
   static function interpolate($modelName, $modelId, $field, $filename, $style = 'original', $defaults = array()) {
     $pathinfo = UploadBehavior::_pathinfo($filename);
     $interpolations = array_merge(array(
@@ -234,7 +234,7 @@ class UploadBehavior extends ModelBehavior {
     $src = null;
     $createHandler = null;
     $outputHandler = null;
-    switch (low($pathinfo['extension'])) {
+    switch (strtolower($pathinfo['extension'])) {
       case 'gif':
         $createHandler = 'imagecreatefromgif';
         $outputHandler = 'imagegif';
@@ -281,7 +281,7 @@ class UploadBehavior extends ModelBehavior {
       }
       if (!isset($destW)) $destW = ($destH/$srcH) * $srcW;
       if (!isset($destH)) $destH = ($destW/$srcW) * $srcH;
-  
+
       // determine resize dimensions from appropriate resize mode and ratio
       if ($resizeMode == 'best') {
         // "best fit" mode
@@ -307,7 +307,7 @@ class UploadBehavior extends ModelBehavior {
         $resizeW = $destW;
         $resizeH = $destH;
       }
-      
+
       $img = imagecreatetruecolor($destW, $destH);
       imagefill($img, 0, 0, imagecolorallocate($img, 255, 255, 255));
       imagecopyresampled($img, $src, ($destW-$resizeW)/2, ($destH-$resizeH)/2, 0, 0, $resizeW, $resizeH, $srcW, $srcH);
@@ -316,7 +316,7 @@ class UploadBehavior extends ModelBehavior {
     }
     return false;
   }
-  
+
   function attachmentMinSize(&$model, $value, $min) {
     $value = array_shift($value);
     if (!empty($value['tmp_name'])) {
@@ -324,7 +324,7 @@ class UploadBehavior extends ModelBehavior {
     }
     return true;
   }
-  
+
   function attachmentMaxSize(&$model, $value, $max) {
     $value = array_shift($value);
     if (!empty($value['tmp_name'])) {
@@ -332,7 +332,7 @@ class UploadBehavior extends ModelBehavior {
     }
     return true;
   }
-  
+
   function attachmentContentType(&$model, $value, $contentTypes) {
     $value = array_shift($value);
     if (!is_array($contentTypes)) {
@@ -352,16 +352,16 @@ class UploadBehavior extends ModelBehavior {
     }
     return true;
   }
-  
+
   function attachmentPresence(&$model, $value) {
     $keys = array_keys($value);
     $field = $keys[0];
     $value = array_shift($value);
-    
+
     if (!empty($value['tmp_name'])) {
       return true;
     }
-    
+
     if (!empty($model->id)) {
       if (!empty($model->data[$model->alias][$field.'_file_name'])) {
         return true;
@@ -412,7 +412,7 @@ class UploadBehavior extends ModelBehavior {
       } else {
         return false;
       }
-    
+
       if($img = $createHandler($upload['tmp_name'])) {
         switch ($mode) {
           case 'min':
