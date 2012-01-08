@@ -26,7 +26,7 @@ class UploadBehavior extends ModelBehavior {
       'path' => ':webroot/upload/:model/:id/:basename_:style.:extension',
       'styles' => array(),
       'resizeToMaxWidth' => false,
-      'quality' => 75
+      'quality' => 95
     );
 
     foreach ($settings as $field => $array) {
@@ -76,7 +76,7 @@ class UploadBehavior extends ModelBehavior {
         $data = $model->data[$model->name][$settings['urlField']];
       }
 
-      if (!is_array($data)) {
+      if (!empty($data) && !is_array($data)) {
         $model->data[$model->name][$field] = $this->_fetchFromUrl($data);
       }
     }
@@ -93,7 +93,7 @@ class UploadBehavior extends ModelBehavior {
     $data['name'] = end(explode('/', $url));
     $data['tmp_name'] = tempnam(sys_get_temp_dir(), $data['name']) . '.' . end(explode('.', $url));
 
-    App::import('Core', 'HttpSocket');
+    App::uses('HttpSocket', 'Network/Http');
     $httpSocket = new HttpSocket();
 
     $raw = $httpSocket->get($url);
@@ -227,7 +227,7 @@ class UploadBehavior extends ModelBehavior {
     return $pathinfo;
   }
 
-  function _resize($srcFile, $destFile, $geometry, $quality = 75) {
+  function _resize($srcFile, $destFile, $geometry, $quality = 95) {
     copy($srcFile, $destFile);
     @chmod($destFile, 0777);
     $pathinfo = UploadBehavior::_pathinfo($srcFile);
