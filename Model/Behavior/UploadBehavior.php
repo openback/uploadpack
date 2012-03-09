@@ -427,5 +427,3 @@ class UploadBehavior extends ModelBehavior {
     return false;
   }
 }
-?>
-
